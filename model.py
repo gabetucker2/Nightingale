@@ -1,11 +1,12 @@
 # imports
-parameters
+import parameters
+import functions
 
 # train
 
 if parameters.train:
-    print("BEGINNING TRAINING")
+    functions.tryPrint("BEGINNING TRAINING")
 
 # test
 if parameters.test:
-    print("BEGINNING TESTING")
+    functions.tryPrint("BEGINNING TESTING")

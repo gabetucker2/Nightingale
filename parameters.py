@@ -4,3 +4,5 @@
 
 train = False
 test = False
+
+consoleLogs = True
