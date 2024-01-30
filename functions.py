@@ -41,7 +41,7 @@ def decodePDF(filePath):
 
     return form_data
 
-def decodeCSV(filePath):
+def decodeCSV(filePath, targetRowIdx):
     with open(filePath, newline='') as csvfile:
         # Read the CSV file
         reader = csv.reader(csvfile)
@@ -55,7 +55,7 @@ def decodeCSV(filePath):
         
         # First row for keys, second row for values
         keys = rows[0]
-        values = rows[1]
+        values = rows[targetRowIdx + 1]
 
         # Combine keys and values into a dictionary
         form_data = dict(zip(keys, values))
@@ -63,27 +63,29 @@ def decodeCSV(filePath):
         return form_data
 
 def hardMatchPAKey(PAKey, patientFields, prescriberFields):
+
+    hardMatchPatient = parameters.thisHardMatchMap[0]
+    hardMatchPrescriber = parameters.thisHardMatchMap[1]
     
     if PAKey == 'date':
         return datetime.now().strftime("%Y-%m-%d")
-    elif PAKey in parameters.hardMatchPatient.keys():
-        return patientFields[parameters.hardMatchPatient[PAKey]]
-    elif PAKey in parameters.hardMatchPrescriber.keys():
-        return prescriberFields[parameters.hardMatchPrescriber[PAKey]]
+    elif PAKey in hardMatchPatient.keys():
+        return patientFields[hardMatchPatient[PAKey]]
+    elif PAKey in hardMatchPrescriber.keys():
+        return prescriberFields[hardMatchPrescriber[PAKey]]
     
 def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_key_map, output_pdf_path):
     # Load the PDF template
     template = pdfrw.PdfReader(input_pdf_path)
-    print("PDF template loaded.")
+    # print("PDF template loaded.")
 
-    # Print all field names in the PDF
-    print("All field names in the PDF:")
-    for page in template.pages:
-        annotations = page.get('/Annots')
-        if annotations is not None:
-            for annotation in annotations:
-                if annotation.get('/T') is not None:
-                    print(annotation.get('/T'))
+    # # Print all field names in the PDF
+    # for page in template.pages:
+    #     annotations = page.get('/Annots')
+    #     if annotations is not None:
+    #         for annotation in annotations:
+    #             if annotation.get('/T') is not None:
+    #                 print(annotation.get('/T'))
 
     # Prepare a reverse mapping from transformed keys to original keys
     transformed_to_original_key_map = {v: k for k, v in original_to_transformed_key_map.items()}
@@ -92,9 +94,9 @@ def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_k
     for transformed_key, field_value in updated_fields.items():
         if field_value is not None and transformed_key in transformed_to_original_key_map:
             original_key = transformed_to_original_key_map[transformed_key]
-            print(f"Attempting to update field: {original_key} with value: {field_value}")
+            # print(f"Attempting to update field: {original_key} with value: {field_value}")
 
-            field_found = False
+            # field_found = False
             for page in template.pages:
                 annotations = page.get('/Annots')
                 if annotations is None:
@@ -102,16 +104,16 @@ def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_k
                 for annotation in annotations:
                     if annotation.get('/T') == original_key:
                         annotation.update(pdfrw.PdfDict(V=field_value))
-                        field_found = True
-                        print(f"Field {original_key} updated.")
+                        # field_found = True
+                        # print(f"Field {original_key} updated.")
                         break
 
-            if not field_found:
-                print(f"Field {original_key} not found or not updated.")
+            # if not field_found:
+                # print(f"Field {original_key} not found or not updated.")
 
     # Save the filled out PDF
     pdfrw.PdfWriter().write(output_pdf_path, template)
-    print(f"PDF saved to {output_pdf_path}")
+    tryPrint(f"---------------------------------\nPDF saved to {output_pdf_path}\n---------------------------------")
 
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')

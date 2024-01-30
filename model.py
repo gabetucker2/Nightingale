@@ -6,34 +6,37 @@ import re
 
 # decode priorAuth, patient, and prescriber data from CSV/PDF format to fields
 priorAuthInputFields = functions.decodePDF(parameters.priorAuthInputPath)
-patientFields = functions.decodeCSV(parameters.patientPath)
-prescriberFields = functions.decodeCSV(parameters.prescriberPath)
+patientFields = functions.decodeCSV(parameters.patientPath, parameters.patientRow)
+prescriberFields = functions.decodeCSV(parameters.prescriberPath, parameters.prescriberRow)
 
 functions.tryPrintFields(f"{parameters.priorAuthFormName} Original PriorAuth", priorAuthInputFields)
-functions.tryPrintFields(parameters.patientName, patientFields)
-functions.tryPrintFields(parameters.prescriberName, prescriberFields)
+functions.tryPrintFields(f"Patient {parameters.patientRow}", patientFields)
+functions.tryPrintFields(f"Prescriber {parameters.prescriberRow}", prescriberFields)
 
 # normalize original priorAuth fields
 priorAuthOutputFields = functions.decodePDF(parameters.priorAuthInputPath)
-priorAuthOutputFieldsNormalized1 = functions.decodePDF(parameters.priorAuthInputPath)
+priorAuthOutputFieldsNormalized1 = {}
 
 # * normalize strings
 for PAKey in priorAuthOutputFields.keys():
 
+    if not PAKey:
+        PAKey = "None"
+
     # * normalize key names (remove special characters)
     oldKey = PAKey
     newKey = re.sub(r'[^a-zA-Z0-9# ]', '', PAKey)
-    functions.replaceKey(priorAuthOutputFieldsNormalized1, oldKey, newKey)
+    priorAuthOutputFieldsNormalized1[newKey] = ''
 
     # * tokenize (word1-word2)
     oldKey = newKey
     newKey = re.sub(r'[ ]', '-', newKey)
-    functions.replaceKey(priorAuthOutputFieldsNormalized1, oldKey, newKey)
+    priorAuthOutputFieldsNormalized1[newKey] = ''
     
     # * lowercase
     oldKey = newKey
     newKey = newKey.lower()
-    functions.replaceKey(priorAuthOutputFieldsNormalized1, oldKey, newKey)
+    priorAuthOutputFieldsNormalized1[newKey] = ''
 
 # functions.tryPrintFields(f"{parameters.priorAuthFormName} Updated PriorAuth", priorAuthOutputFieldsNormalized1)
 
@@ -79,6 +82,10 @@ functions.tryPrintFields(f"{parameters.priorAuthFormName} PriorAuth Match", new_
 original_to_transformed_key_map = {}
 
 for original_key in priorAuthOutputFields.keys():
+    
+    if not original_key:
+        original_key = "None"
+
     # Apply the same transformations that were used in the script
     transformed_key = re.sub(r'[^a-zA-Z0-9# ]', '', original_key)  # Remove special characters
     transformed_key = re.sub(r'[ ]', '-', transformed_key)       # Replace spaces with hyphens
@@ -92,4 +99,4 @@ functions.tryPrintFields("Original-Transformed Key Mapping", original_to_transfo
 
 # encode updated priorAuth fields into new PDF
 
-functions.create_updated_pdf(parameters.priorAuthInputPath, new_field_representation, original_to_transformed_key_map, f"{parameters.outputPath}autofilledPA.pdf")
+functions.create_updated_pdf(parameters.priorAuthInputPath, new_field_representation, original_to_transformed_key_map, f"{parameters.outputPath}{parameters.outputName}.pdf")

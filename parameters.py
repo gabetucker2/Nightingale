@@ -3,12 +3,21 @@
 # -------------------------------------------------------------------------------------------------
 # static primary parameters
 
+outputName = 'output1'
+priorAuthFormName = 'Anthem'
+patientRow = 3
+prescriberRow = 5
+
 consoleLogs = True
 
+# -------------------------------------------------------------------------------------------------
+# static peripheral parameters
 
-priorAuthFormName = 'Medicare'
-patientName = 'patient1'
-prescriberName = 'prescriber1'
+priorAuthFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PriorAuthData\\'
+patientFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PatientData\\'
+prescriberFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PrescriberData\\'
+
+outputPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\outputs\\'
 
 
 priorAuthTermBlacklist = [
@@ -20,7 +29,10 @@ priorAuthTermBlacklist = [
     'text'
 ]
 
-hardMatchPatient = {
+# -------------------------------------------------------------------------------------------------
+# hard match parameters
+
+hardMatchPatientMedicare = {
     'patient-name' : 'full-name',
     'address' : 'address',
     'city' : 'city',
@@ -35,7 +47,7 @@ hardMatchPatient = {
     'drug-allergies' : 'drug-allergies',
 }
 
-hardMatchPrescriber = {
+hardMatchPrescriberMedicare = {
     'address2' : 'address',
     'city2' : 'city',
     'state2' : 'state',
@@ -49,18 +61,60 @@ hardMatchPrescriber = {
     'contact-person' : 'office-contact-person',
 }
 
-# -------------------------------------------------------------------------------------------------
-# static peripheral parameters
+hardMatchPatientAnthem = {
+    'planmedical-group-name': 'insurance-primary-name',
+    'planmedical-group-phone': 'insurance-primary-phone-number',
+    'planmedical-group-fax': 'insurance-primary-fax-number',
+    'first-name': 'first-name',
+    'first-name': 'first-name',
+    'last-name': 'last-name',
+    'mi': 'middle-initial',
+    'phone-number': 'phone-number',
+    'address': 'address',
+    'city': 'city',
+    'state': 'state',
+    'zip-code': 'zip',
+    'date-of-birth': 'dob',
+    'height-incm': 'height',
+    'weight-lbkg': 'weight',
+    'allergies': 'drug-allergies',
+    'patients-authorized-representative-if-applicable': 'authorized-representative-name',
+    'authorized-representative-phone-number': 'authorized-representative-phone-number',
+    'primary-insurance-name': 'insurance-primary-name',
+    'patient-id-number': 'insurance-primary-id',
+    'secondary-insurance-name': 'insurance-secondary-name',
+    'patient-id-number2': 'insurance-secondary-id',
+    'patient-name': 'full-name',
+    'id': 'id',
+}
 
-priorAuthFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PriorAuthData\\'
-patientFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PatientData\\'
-prescriberFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PrescriberData\\'
+hardMatchPrescriberAnthem = {
+    'first-name2': 'first-name',
+    'last-name2': 'last-name',
+    'specialty': 'specialty',
+    'address2': 'address',
+    'city2': 'city',
+    'state2': 'state',
+    'zip-code2': 'zip',
+    'requestor-if-different-than-prescriber': 'requestor',
+    'office-contact-person': 'office-contact-person',
+    'npi-number-individual': 'npi-number',
+    'phone-number2': 'main-phone',
+    'dea-number-if-required': 'dea-number',
+    'fax-number-in-hipaa-compliant-area': 'office-fax-number',
+    'email-address': 'email-address',
+}
 
-outputPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\outputs\\'
+hardMatchMap = {
+    'Medicare' : [hardMatchPatientMedicare, hardMatchPrescriberMedicare],
+    'Anthem' : [hardMatchPatientAnthem, hardMatchPrescriberAnthem],
+}
 
 # -------------------------------------------------------------------------------------------------
 # procedural parameters
 
 priorAuthInputPath = f"{priorAuthFolderPath}{priorAuthFormName}.pdf"
-patientPath = f"{patientFolderPath}{patientName}.csv"
-prescriberPath = f"{prescriberFolderPath}{prescriberName}.csv"
+patientPath = f"{patientFolderPath}patients.csv"
+prescriberPath = f"{prescriberFolderPath}prescribers.csv"
+
+thisHardMatchMap = hardMatchMap[priorAuthFormName]
