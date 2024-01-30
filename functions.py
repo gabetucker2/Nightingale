@@ -31,12 +31,12 @@ def decodePDF(filePath):
         for field in pdf.Root.AcroForm.Fields:
             if field.Kids:  # For fields that have children
                 for subfield in field.Kids:
-                    field_name = subfield.T[1:-1] if subfield.T else None
-                    field_value = subfield.V[1:-1] if subfield.V else None
+                    field_name = subfield.T if subfield.T else None
+                    field_value = None # subfield.V[1:-1] if subfield.V else None # only strip parens from values
                     form_data[field_name] = field_value
             else:  # For fields that don't have children
-                field_name = field.T[1:-1] if field.T else None
-                field_value = field.V[1:-1] if field.V else None
+                field_name = field.T if field.T else None
+                field_value = None # field.V[1:-1] if subfield.V else None # only strip parens from values
                 form_data[field_name] = field_value
 
     return form_data
@@ -74,6 +74,16 @@ def hardMatchPAKey(PAKey, patientFields, prescriberFields):
 def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_key_map, output_pdf_path):
     # Load the PDF template
     template = pdfrw.PdfReader(input_pdf_path)
+    print("PDF template loaded.")
+
+    # Print all field names in the PDF
+    print("All field names in the PDF:")
+    for page in template.pages:
+        annotations = page.get('/Annots')
+        if annotations is not None:
+            for annotation in annotations:
+                if annotation.get('/T') is not None:
+                    print(annotation.get('/T'))
 
     # Prepare a reverse mapping from transformed keys to original keys
     transformed_to_original_key_map = {v: k for k, v in original_to_transformed_key_map.items()}
@@ -82,6 +92,9 @@ def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_k
     for transformed_key, field_value in updated_fields.items():
         if field_value is not None and transformed_key in transformed_to_original_key_map:
             original_key = transformed_to_original_key_map[transformed_key]
+            print(f"Attempting to update field: {original_key} with value: {field_value}")
+
+            field_found = False
             for page in template.pages:
                 annotations = page.get('/Annots')
                 if annotations is None:
@@ -89,9 +102,16 @@ def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_k
                 for annotation in annotations:
                     if annotation.get('/T') == original_key:
                         annotation.update(pdfrw.PdfDict(V=field_value))
+                        field_found = True
+                        print(f"Field {original_key} updated.")
+                        break
+
+            if not field_found:
+                print(f"Field {original_key} not found or not updated.")
 
     # Save the filled out PDF
     pdfrw.PdfWriter().write(output_pdf_path, template)
+    print(f"PDF saved to {output_pdf_path}")
 
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
