@@ -3,6 +3,10 @@ import parameters
 
 import csv
 import pdfrw
+from transformers import BertTokenizer, BertModel
+import torch
+import numpy as np
+from datetime import datetime
 
 # functions
 def replaceKey(dict, oldKey, newKey):
@@ -58,31 +62,58 @@ def decodeCSV(filePath):
 
         return form_data
 
-from transformers import BertTokenizer, BertModel
-import torch
-import numpy as np
+def hardMatchPAKey(PAKey, patientFields, prescriberFields):
+    
+    if PAKey == 'date':
+        return datetime.now().strftime("%Y-%m-%d")
+    elif PAKey in parameters.hardMatchPatient.keys():
+        return patientFields[parameters.hardMatchPatient[PAKey]]
+    elif PAKey in parameters.hardMatchPrescriber.keys():
+        return prescriberFields[parameters.hardMatchPrescriber[PAKey]]
+    
+def create_updated_pdf(input_pdf_path, updated_fields, original_to_transformed_key_map, output_pdf_path):
+    # Load the PDF template
+    template = pdfrw.PdfReader(input_pdf_path)
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model = BertModel.from_pretrained('bert-base-uncased')
+    # Prepare a reverse mapping from transformed keys to original keys
+    transformed_to_original_key_map = {v: k for k, v in original_to_transformed_key_map.items()}
 
-def get_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=128)
-    outputs = model(**inputs)
-    return outputs.pooler_output[0]
+    # Update the fields with the new values
+    for transformed_key, field_value in updated_fields.items():
+        if field_value is not None and transformed_key in transformed_to_original_key_map:
+            original_key = transformed_to_original_key_map[transformed_key]
+            for page in template.pages:
+                annotations = page.get('/Annots')
+                if annotations is None:
+                    continue
+                for annotation in annotations:
+                    if annotation.get('/T') == original_key:
+                        annotation.update(pdfrw.PdfDict(V=field_value))
 
-def cosine_similarity(vec1, vec2):
-    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+    # Save the filled out PDF
+    pdfrw.PdfWriter().write(output_pdf_path, template)
 
-def find_most_similar_key(target_key, comparison_dict):
-    target_embedding = get_embedding(target_key).detach().numpy()
-    highest_similarity = -1
-    most_similar_key = None
+# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+# model = BertModel.from_pretrained('bert-base-uncased')
 
-    for key in comparison_dict.keys():
-        key_embedding = get_embedding(key).detach().numpy()
-        similarity = cosine_similarity(target_embedding, key_embedding)
-        if similarity > highest_similarity:
-            highest_similarity = similarity
-            most_similar_key = key
+# def get_embedding(text):
+#     inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=128)
+#     outputs = model(**inputs)
+#     return outputs.pooler_output[0]
 
-    return most_similar_key, highest_similarity
+# def cosine_similarity(vec1, vec2):
+#     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+# def find_most_similar_key(target_key, comparison_dict):
+#     target_embedding = get_embedding(target_key).detach().numpy()
+#     highest_similarity = -1
+#     most_similar_key = None
+
+#     for key in comparison_dict.keys():
+#         key_embedding = get_embedding(key).detach().numpy()
+#         similarity = cosine_similarity(target_embedding, key_embedding)
+#         if similarity > highest_similarity:
+#             highest_similarity = similarity
+#             most_similar_key = key
+
+#     return most_similar_key, highest_similarity
