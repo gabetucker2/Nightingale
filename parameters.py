@@ -5,7 +5,7 @@ import os
 # static primary parameters
 
 outputName = 'output1'
-priorAuthFormName = 'Anthem'
+priorAuthFormName = 'Medicare'
 patientRow = 3
 prescriberRow = 5
 
