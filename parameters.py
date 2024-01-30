@@ -1,4 +1,5 @@
 # imports
+import os
 
 # -------------------------------------------------------------------------------------------------
 # static primary parameters
@@ -12,13 +13,6 @@ consoleLogs = True
 
 # -------------------------------------------------------------------------------------------------
 # static peripheral parameters
-
-priorAuthFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PriorAuthData\\'
-patientFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PatientData\\'
-prescriberFolderPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\data\\PrescriberData\\'
-
-outputPath = 'C:\\Users\\gabe\\OneDrive\\Desktop\\Nightingale\\outputs\\'
-
 
 priorAuthTermBlacklist = [
     'other',
@@ -112,6 +106,13 @@ hardMatchMap = {
 
 # -------------------------------------------------------------------------------------------------
 # procedural parameters
+
+projectPath = f'{os.getcwd()}\\'
+
+priorAuthFolderPath = f'{projectPath}data\\PriorAuthData\\'
+patientFolderPath = f'{projectPath}data\\PatientData\\'
+prescriberFolderPath = f'{projectPath}data\\PrescriberData\\'
+outputPath = f'{projectPath}outputs\\'
 
 priorAuthInputPath = f"{priorAuthFolderPath}{priorAuthFormName}.pdf"
 patientPath = f"{patientFolderPath}patients.csv"
