@@ -5,9 +5,9 @@ import os
 # static primary parameters
 
 outputName = 'output1'
-priorAuthFormName = 'Medicare'
-patientRow = 3
-prescriberRow = 5
+priorAuthFormName = 'Anthem'
+patientRow = 1
+prescriberRow = 7
 
 consoleLogs = True
 
